@@ -4,6 +4,8 @@
 #include <math.h>
 #include <time.h>
 
+#define MAX_COUNT_VAL 8
+
 int main (int argc, char *argv[]) {
 	
 	if (argc > 6 ){
@@ -34,6 +36,9 @@ int main (int argc, char *argv[]) {
 	bool hit_flag = 0;
 	bool miss_flag = 0;
 	bool miss_done_flag = 0;
+	bool rand_flag = 0;
+	long int rand_tries = 0;
+	long int max_count_index = 0;
 
 	long int curr_addr;
 	long int curr_index;
@@ -47,8 +52,8 @@ int main (int argc, char *argv[]) {
 	srand((unsigned) time(&tm));
 	int temp_rand = 0;
 
-	if ((assoc & (assoc - 1)) != 0) {
-		printf("Please enter an associativity that is 2^n.");
+	if (((assoc & (assoc - 1)) != 0) || (assoc == 0)) {
+		printf("Please enter an associativity that is > 0 and of the form 2^n.");
 		return 1;
 	} 
 
@@ -77,19 +82,29 @@ int main (int argc, char *argv[]) {
 		curr_index = curr_addr & shift_temp;
 		curr_block_addr = curr_addr / blk_sz;
 		
-		//printf("curr addr = %li, curr tag = %li, curr block = %li, curr index = %li\n", curr_addr, curr_tag, curr_block_addr, curr_index);
+		printf("curr addr = %li, curr tag = %li, curr block = %li, curr index = %li\n", curr_addr, curr_tag, curr_block_addr, curr_index);
 
 		for (int j = 0; j < assoc; j++){
 			if ((valid[j][curr_index - 1] == 1) && (tag[j][curr_index - 1] == curr_tag)) {
-				hit_flag = 1;
+				hits++;
+				miss_flag = 0;
+				if (lru_sel = 1) {
+					for (int m = 0; m < assoc; m++) {
+						if ((valid[m][curr_index - 1] == 1) && (tag[m][curr_index - 1] < MAX_COUNT_VAL)) {
+							count[m][curr_index - 1] = count[m][curr_index - 1] + 1;
+						}
+					}
+					count[j][curr_index - 1] = 1;
+				}
 				break;
 			}
 			else {
 				miss_flag = 1;
+				/*
 				for (int k = 0; k < assoc; k++){
-					if (valid[j][curr_index - 1] == 0) {
-						valid[j][curr_index - 1] = 1;
-						tag[j][curr_index - 1] = curr_tag;
+					if (valid[k][curr_index - 1] == 0) {
+						valid[k][curr_index - 1] = 1;
+						tag[k][curr_index - 1] = curr_tag;
 						miss_done_flag = 1;
 						break;
 					}
@@ -98,22 +113,51 @@ int main (int argc, char *argv[]) {
 					miss_done_flag = 0;
 					break;
 				}
+				
 				else {		//if tag not found in line then randomly pick one to replace
 					temp_rand = rand() % assoc;
 					valid[temp_rand][curr_index - 1] = 1;
 					tag[temp_rand][curr_index - 1] = curr_tag;
 				}
+				*/
 			}
 		}
 		if (miss_flag == 1) {
 			misses++;
 			miss_flag = 0;
+			if (lru_sel == 0) {						//RAND
+				while (!rand_flag) {
+					temp_rand = rand() % assoc;
+					if (valid[temp_rand][curr_index - 1] == 0){
+						valid[temp_rand][curr_index - 1] = 1;
+						tag[temp_rand][curr_index - 1] = curr_tag;
+						rand_flag = 1;
+						break;
+					}
+					if (rand_tries >= assoc) {
+						valid[temp_rand][curr_index - 1] = 1;
+						tag[temp_rand][curr_index - 1] = curr_tag;
+						rand_flag = 1;
+						rand_tries = 0;
+						break;
+					}
+					rand_tries++;
+				}
+				rand_flag = 0;
+				rand_tries = 0;
+			}
+			
+			else {									//LRU
+				for (int k = 0; k < assoc; k++) {
+					if (count[k][curr_index - 1] >= count [max_count_index][curr_index - 1]){
+						max_count_index = k;
+					}
+				}
+				valid[max_count_index][curr_index - 1] = 1;
+				tag[max_count_index][curr_index - 1] = curr_tag;
+				max_count_index = 0;
+			}
 		}
-		if (hit_flag == 1) {
-			hits++;
-			hit_flag = 0;
-		}
-		
 	}
 	
 	printf("Cache size: %dk\n", ((blk_sz * num_elm) / 1000));
