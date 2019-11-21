@@ -6,6 +6,11 @@
 
 #define MAX_COUNT_VAL 8
 
+//Adam is free 8:45 - 11:30 and 2 - 4 and maybe after 5:30
+
+//numblocks in blocks per line
+//cache size  = line number
+
 int main (int argc, char *argv[]) {
 	
 	//Argument Count Checking
@@ -44,6 +49,8 @@ int main (int argc, char *argv[]) {
 	bool nonvalid_exists = 0;
 	long int rand_tries = 0;
 	long int max_count_index = 0;
+	
+	long int num_reads = 0;
 
 	//Address broken out
 	long int curr_addr;
@@ -98,9 +105,11 @@ int main (int argc, char *argv[]) {
 	//------------------------------------------------------------------------------//
 
 	//For each element in the file...
-	for (int i = 0; i < num_elm; i++){
+	for (int i = 0; !(feof(file_ptr)); i++){
 		
 		fscanf(file_ptr, "%x", &curr_addr);						//Scan a value in from the file
+		num_reads++;
+		//printf("numreads = %d\n", num_reads);
 		curr_tag = curr_addr >> (b_min + offset_bits);			//Generate the tag by shifting the size of the index (b_min) and the size of the offset (offset_bits)
 		curr_index = (curr_addr & shift_temp) >> offset_bits;	//Generate the index by ANDing the value from the file with the mask, then shift it over by the offset
 		curr_block_addr = curr_addr / blk_sz;					//determine the current block address based on the current address and the block size
@@ -160,12 +169,12 @@ int main (int argc, char *argv[]) {
 	}
 	
 	//Print required outputs
-	printf("Cache size: %dk\n", ((num_elm) / 1000));
-	printf("Reads: %d\n", num_elm);
+	printf("Cache size: %dk\n", ((num_reads) / 1000));
+	printf("Reads: %d\n", num_reads);
 	printf("Hits: %d\n", hits);
 	printf("Misses: %d\n", misses);
-	printf("Hit Rate: %2.2f%%\n", (((float) hits / num_elm) * 100));
-	printf("Miss Rate: %2.2f%%\n", (((float) misses / num_elm)* 100));
+	printf("Hit Rate: %2.2f%%\n", (((float) hits / num_reads) * 100));
+	printf("Miss Rate: %2.2f%%\n", (((float) misses / num_reads)* 100));
 	
 	return 0;
 }
