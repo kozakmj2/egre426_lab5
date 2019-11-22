@@ -28,7 +28,7 @@ int main (int argc, char *argv[]) {
 
 	FILE *file_ptr;
 
-	if ((file_ptr = fopen(argv[5], "rt")) == NULL){
+	if ((file_ptr = fopen(argv[5], "r")) == NULL){
 		printf("Unable to open file at path specified.");
 		return 1;
 	}
@@ -94,10 +94,25 @@ int main (int argc, char *argv[]) {
 		shift_temp = (shift_temp << 1) | 1;
 	}
 	
+	//printf("shift temp = %d\n", shift_temp);
+	
 	//Generate arrays for tags, valid bit, and count variables
-	long int tag[assoc][((shift_temp + 1))];
-	bool valid[assoc][((shift_temp + 1))];
-	int count[assoc][((shift_temp + 1))];
+	
+	long int *tag[(shift_temp + 1)]; 
+	for (int x = 0; x < (shift_temp + 1); x++) 
+         tag[x] = (long int *)malloc(assoc * sizeof(long int));
+	bool *valid[(shift_temp + 1)]; 
+	for (int y = 0; y < (shift_temp + 1); y++) 
+         valid[y] = (bool *)malloc(assoc * sizeof(bool));
+	int *count[(shift_temp + 1)]; 
+	for (int z = 0; z < (shift_temp + 1); z++) 
+         count[z] = (int *)malloc(assoc * sizeof(int));
+	
+	//int tag[assoc][((shift_temp + 1))];
+	//bool valid[assoc][((shift_temp + 1))];
+	//int count[assoc][((shift_temp + 1))];
+	
+	int index[assoc][((shift_temp + 1))];
 	
 	//Shift the mask now that is has been used to generate the arrays
 	shift_temp = shift_temp << offset_bits;
@@ -109,7 +124,6 @@ int main (int argc, char *argv[]) {
 		
 		fscanf(file_ptr, "%x", &curr_addr);						//Scan a value in from the file
 		num_reads++;
-		//printf("numreads = %d\n", num_reads);
 		curr_tag = curr_addr >> (b_min + offset_bits);			//Generate the tag by shifting the size of the index (b_min) and the size of the offset (offset_bits)
 		curr_index = (curr_addr & shift_temp) >> offset_bits;	//Generate the index by ANDing the value from the file with the mask, then shift it over by the offset
 		curr_block_addr = curr_addr / blk_sz;					//determine the current block address based on the current address and the block size
@@ -133,6 +147,7 @@ int main (int argc, char *argv[]) {
 			}
 			else {
 				miss_flag = 1;											//Set the miss flag if valid not set or tags don't match
+				index[j][curr_index - 1] = curr_addr;
 			}
 		}
 		if (miss_flag == 1) {											//If miss flag is set after for loop...
@@ -167,6 +182,18 @@ int main (int argc, char *argv[]) {
 			}
 		}
 	}
+	
+	if (num_elm == 16) {
+		printf("Set 0 = %d, %d\n", index[0][0], index[0][1]);
+		printf("Set 1 = %d, %d\n", index[0][2], index[0][3]);
+		printf("Set 2 = %d, %d\n", index[0][4], index[0][5]);
+		printf("Set 3 = %d, %d\n", index[0][6], index[0][7]);
+		printf("Set 4 = %d, %d\n", index[0][8], index[0][9]);
+		printf("Set 5 = %d, %d\n", index[0][10], index[0][11]);
+		printf("Set 6 = %d, %d\n", index[0][12], index[0][13]);
+		printf("Set 7 = %d, %d\n", index[0][14], index[0][15]);
+	}
+	
 	
 	//Print required outputs
 	printf("Cache size: %dk\n", ((num_reads) / 1000));
