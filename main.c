@@ -49,6 +49,7 @@ int main (int argc, char *argv[]) {
 	bool nonvalid_exists = 0;
 	long int rand_tries = 0;
 	long int max_count_index = 0;
+	bool max_flag = 0;
 	
 	long int num_reads = 0;
 
@@ -126,21 +127,16 @@ int main (int argc, char *argv[]) {
 	for (int i = 0; !(feof(file_ptr)); i++){
 		
 		fscanf(file_ptr, "%x", &curr_addr);						//Scan a value in from the file
+		
 		num_reads++;
 		curr_tag = curr_addr >> (b_min + offset_bits);			//Generate the tag by shifting the size of the index (b_min) and the size of the offset (offset_bits)
-		
-		//printf("current tag = %d\n", curr_tag);
-		
-		curr_index = (curr_addr & shift_temp) >> offset_bits;	//Generate the index by ANDing the value from the file with the mask, then shift it over by the offset
-		
-		//printf("current index = %d\n", curr_index);
-		
+		curr_index = (curr_addr & shift_temp) >> offset_bits;	//Generate the index by ANDing the value from the file with the mask, then shift it over by the offset		
 		curr_block_addr = curr_addr / blk_sz;					//determine the current block address based on the current address and the block size
 		
-		//printf("curr addr = %li, curr tag = %li, curr block = %li, curr index = %li\n", curr_addr, curr_tag, curr_block_addr, curr_index);	//DEBUG
-
 		//For each element in the index/set...
 		for (int j = 0; j < assoc; j++){
+			
+			
 			if ((valid[j][curr_index] == 1) && (tag[j][curr_index] == curr_tag)) {					//If valid flag is set and the tags match...
 				hits++;																						//Increase the hits...
 				miss_flag = 0;																				//Clear the miss flag...
@@ -181,20 +177,49 @@ int main (int argc, char *argv[]) {
 			}
 			
 			else {														//If LRU is selected...
-				for (int k = 0; k < assoc; k++) {
-					if (count[k][curr_index] >= count[max_count_index][curr_index]){	//Find the value with the maximum count
-						max_count_index = k;													//Save that index
+				
+				for (int m = 0; m < assoc; m++) {														//Loop through each of the values in the index/set
+					if ((valid[m][curr_index] == 1) &&(count[m][curr_index] < MAX_COUNT_VAL)) {	//If the valid bit is set and the counter < some maximum value...
+						count[m][curr_index] = count[m][curr_index] + 1;						//Increase the counter for that value
 					}
 				}
-				valid[max_count_index][curr_index] = 1;										//Set the valid flag at that index
-				tag[max_count_index][curr_index] = curr_tag;								//Set the tag at that index
 				
+				for (int k = 0; k < assoc; k++) {
+					if (valid[k][curr_index] == 0) {
+						valid[k][curr_index] = 1;										//Set the valid flag at that index
+						tag[k][curr_index] = curr_tag;
+						max_flag = 0;
+						count[k][curr_index] = 1;
+						if (num_elm == 16) {
+							index[k][curr_index] = curr_addr;
+							//printf("curr addr = %d\n", curr_addr);
+						}
+						break;
+					}
+					else if (count[k][curr_index] >= count[max_count_index][curr_index]){	//Find the value with the maximum count
+							max_count_index = k;													//Save that index
+							max_flag = 1;
+					}
+				}
+				if(max_flag == 1) {
+					valid[max_count_index][curr_index] = 1;										//Set the valid flag at that index
+					tag[max_count_index][curr_index] = curr_tag;								//Set the tag at that index
+					count[max_count_index][curr_index] = 1;
+					max_flag = 0;
+					if (num_elm == 16) {
+						index[0][curr_index] = curr_addr;
+						//printf("curr addr = %d\n", curr_addr);
+					}
+				}
+				/*
 				if (num_elm == 16) {
 					index[max_count_index][curr_index] = curr_addr;
 					printf("curr addr = %d\n", curr_addr);
 				}
+				*/
 				
 				max_count_index = 0;															//Reset the index
+				max_flag = 0;
 				//printf("%d\n",curr_index);
 				
 				
@@ -205,13 +230,13 @@ int main (int argc, char *argv[]) {
 	
 	if (num_elm == 16) {
 		printf("Set 0 = %d, %d\n", index[0][0], index[1][0]);
-		printf("Set 0 = %d, %d\n", index[0][1], index[1][1]);
-		printf("Set 0 = %d, %d\n", index[0][2], index[1][2]);
-		printf("Set 0 = %d, %d\n", index[0][3], index[1][3]);
-		printf("Set 0 = %d, %d\n", index[0][4], index[1][4]);
-		printf("Set 0 = %d, %d\n", index[0][5], index[1][5]);
-		printf("Set 0 = %d, %d\n", index[0][6], index[1][6]);
-		printf("Set 0 = %d, %d\n", index[0][7], index[1][7]);
+		printf("Set 1 = %d, %d\n", index[0][1], index[1][1]);
+		printf("Set 2 = %d, %d\n", index[0][2], index[1][2]);
+		printf("Set 3 = %d, %d\n", index[0][3], index[1][3]);
+		printf("Set 4 = %d, %d\n", index[0][4], index[1][4]);
+		printf("Set 5 = %d, %d\n", index[0][5], index[1][5]);
+		printf("Set 6 = %d, %d\n", index[0][6], index[1][6]);
+		printf("Set 7 = %d, %d\n", index[0][7], index[1][7]);
 		
 	}
 	
