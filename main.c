@@ -137,97 +137,83 @@ int main (int argc, char *argv[]) {
 		for (int j = 0; j < assoc; j++){
 			
 			
-			if ((valid[j][curr_index] == 1) && (tag[j][curr_index] == curr_tag)) {					//If valid flag is set and the tags match...
-				hits++;																						//Increase the hits...
-				miss_flag = 0;																				//Clear the miss flag...
-				if (lru_sel = 1) {																			//If LRU is selected instead of random...
-					for (int m = 0; m < assoc; m++) {														//Loop through each of the values in the index/set
-						if ((valid[m][curr_index] == 1) && (tag[m][curr_index] == curr_tag) &&(count[m][curr_index] < MAX_COUNT_VAL)) {	//If the valid bit is set and the counter < some maximum value...
-							count[m][curr_index] = count[m][curr_index] + 1;						//Increase the counter for that value
+			if ((valid[j][curr_index] == 1) && (tag[j][curr_index] == curr_tag)) {		//If valid flag is set and the tags match...
+				hits++;																	//Increase the hits...
+				miss_flag = 0;															//Clear the miss flag...
+				if (lru_sel = 1) {														//If LRU is selected instead of random...
+					for (int m = 0; m < assoc; m++) {									//Loop through each of the values in the index/set
+						if ((valid[m][curr_index] == 1) && (tag[m][curr_index] == curr_tag) &&(count[m][curr_index] < MAX_COUNT_VAL)) {		//If the valid bit is set and the counter < some maximum value...
+							count[m][curr_index] = count[m][curr_index] + 1;																	//Increase the counter for that value
 						}
 					}
-					count[j][curr_index] = 1;						//If a hit, reset the counter for the element to 1
+					count[j][curr_index] = 1;							//If a hit, reset the counter for the element to 1
 				}
 				break;													//Break out of the for loop if a hit already happened
 			}
 			else {
 				miss_flag = 1;											//Set the miss flag if valid not set or tags don't match
-				//index[i] = curr_addr;
-				//printf("currentadd = %d\n", curr_addr);
 			}
 		}
 		if (miss_flag == 1) {											//If miss flag is set after for loop...
 			misses++;													//Increase the misses...
 			miss_flag = 0;												//Reset the miss flag...
 			if (lru_sel == 0) {											//If random is selected...
-				for (int n = 0; n < assoc; n++) {
+				for (int n = 0; n < assoc; n++) {						//Look for a non-valid element in the set/index
 					if (valid[n][curr_index] == 0) {
-						nonvalid_exists = 1;
+						nonvalid_exists = 1;							//Set a flag if one is found
 					}
 				}
 				while (nonvalid_exists) {								//While a value has not been placed...
 					temp_rand = rand() % assoc;							//Generate a random value less than the associativity (column number)
-					if (valid[temp_rand][curr_index] == 0){			//If the random value index is not valid 
-						valid[temp_rand][curr_index] = 1;			//Set the valid bit
-						tag[temp_rand][curr_index] = curr_tag;		//Add the tag
-						nonvalid_exists = 0;							//Set a flag that the value has been placed somewhere
+					if (valid[temp_rand][curr_index] == 0){				//If the random value index is not valid 
+						valid[temp_rand][curr_index] = 1;				//Set the valid bit
+						tag[temp_rand][curr_index] = curr_tag;			//Add the tag
+						nonvalid_exists = 0;							//Clear the flag to imply that the value has been placed somewhere
 						break;											//Break out of the while loop
 					}
 				}
 			}
 			
-			else {														//If LRU is selected...
+			else {																				//If LRU is selected...
 				
-				for (int m = 0; m < assoc; m++) {														//Loop through each of the values in the index/set
+				for (int m = 0; m < assoc; m++) {												//Loop through each of the values in the index/set
 					if ((valid[m][curr_index] == 1) &&(count[m][curr_index] < MAX_COUNT_VAL)) {	//If the valid bit is set and the counter < some maximum value...
 						count[m][curr_index] = count[m][curr_index] + 1;						//Increase the counter for that value
 					}
 				}
 				
-				for (int k = 0; k < assoc; k++) {
-					if (valid[k][curr_index] == 0) {
-						valid[k][curr_index] = 1;										//Set the valid flag at that index
-						tag[k][curr_index] = curr_tag;
-						max_flag = 0;
-						count[k][curr_index] = 1;
-						if (num_elm == 16) {
-							index[k][curr_index] = curr_addr;
-							//printf("curr addr = %d\n", curr_addr);
+				for (int k = 0; k < assoc; k++) {				//Loop through the set and check if there is a non-valid address (in order)
+					if (valid[k][curr_index] == 0) {			//If a non-valid address exists
+						valid[k][curr_index] = 1;				//Set the valid flag at that index
+						tag[k][curr_index] = curr_tag;			//Set the tag to the current flag
+						max_flag = 0;							//Set a flag to NOT check the max number, since the value is already placed
+						count[k][curr_index] = 1;				//Reset the count to 1 at that position
+						if (num_elm == 16) {					//To show the result of the cache for Step 1
+							index[k][curr_index] = curr_addr;	//Add the address to the data/index array
 						}
 						break;
 					}
 					else if (count[k][curr_index] >= count[max_count_index][curr_index]){	//Find the value with the maximum count
-							max_count_index = k;													//Save that index
-							max_flag = 1;
+						max_count_index = k;												//Save that index
+						max_flag = 1;														//Assert that a maximum has been found
 					}
 				}
 				if(max_flag == 1) {
-					valid[max_count_index][curr_index] = 1;										//Set the valid flag at that index
-					tag[max_count_index][curr_index] = curr_tag;								//Set the tag at that index
-					count[max_count_index][curr_index] = 1;
-					max_flag = 0;
-					if (num_elm == 16) {
-						index[0][curr_index] = curr_addr;
-						//printf("curr addr = %d\n", curr_addr);
+					valid[max_count_index][curr_index] = 1;			//Set the valid flag at that index
+					tag[max_count_index][curr_index] = curr_tag;	//Set the tag at that index
+					count[max_count_index][curr_index] = 1;			//Reset the count for the position it was placed at
+					max_flag = 0;									//Clear the maximum found flag
+					if (num_elm == 16) {							//To show the result of the cache for Step 1
+						index[0][curr_index] = curr_addr;			//Add the address to the data/index array
 					}
 				}
-				/*
-				if (num_elm == 16) {
-					index[max_count_index][curr_index] = curr_addr;
-					printf("curr addr = %d\n", curr_addr);
-				}
-				*/
-				
-				max_count_index = 0;															//Reset the index
-				max_flag = 0;
-				//printf("%d\n",curr_index);
-				
-				
+				max_count_index = 0;								//Reset the index
+				max_flag = 0;										//Reset the maximum found flag
 			}
 		}
 	}
 	
-	
+	//Print the set of running through Step 1 Tests
 	if (num_elm == 16) {
 		printf("Set 0 = %d, %d\n", index[0][0], index[1][0]);
 		printf("Set 1 = %d, %d\n", index[0][1], index[1][1]);
@@ -237,9 +223,7 @@ int main (int argc, char *argv[]) {
 		printf("Set 5 = %d, %d\n", index[0][5], index[1][5]);
 		printf("Set 6 = %d, %d\n", index[0][6], index[1][6]);
 		printf("Set 7 = %d, %d\n", index[0][7], index[1][7]);
-		
 	}
-	
 	
 	//Print required outputs
 	printf("Cache size: %dk\n", ((num_reads) / 1000));
