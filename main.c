@@ -98,8 +98,9 @@ int main (int argc, char *argv[]) {
 	
 	//Generate arrays for tags, valid bit, and count variables
 	
+	/*
 	long int *tag[(shift_temp + 1)]; 
-	for (int x = 0; x < (shift_temp + 1); x++) 
+	for (int x = 0; x < (shift_temp + 1); x++) 					///try removing 1
          tag[x] = (long int *)malloc(assoc * sizeof(long int));
 	bool *valid[(shift_temp + 1)]; 
 	for (int y = 0; y < (shift_temp + 1); y++) 
@@ -107,12 +108,13 @@ int main (int argc, char *argv[]) {
 	int *count[(shift_temp + 1)]; 
 	for (int z = 0; z < (shift_temp + 1); z++) 
          count[z] = (int *)malloc(assoc * sizeof(int));
+	*/
 	
-	//int tag[assoc][((shift_temp + 1))];
-	//bool valid[assoc][((shift_temp + 1))];
-	//int count[assoc][((shift_temp + 1))];
+	int tag[assoc][((shift_temp + 1))];
+	bool valid[assoc][((shift_temp + 1))];
+	int count[assoc][((shift_temp + 1))];
 	
-	int index[assoc][((shift_temp + 1))];
+	//int index[assoc][((shift_temp + 1))];
 	
 	//Shift the mask now that is has been used to generate the arrays
 	shift_temp = shift_temp << offset_bits;
@@ -137,7 +139,7 @@ int main (int argc, char *argv[]) {
 				miss_flag = 0;																				//Clear the miss flag...
 				if (lru_sel = 1) {																			//If LRU is selected instead of random...
 					for (int m = 0; m < assoc; m++) {														//Loop through each of the values in the index/set
-						if ((valid[m][curr_index - 1] == 1) && (tag[m][curr_index - 1] < MAX_COUNT_VAL)) {	//If the valid bit is set and the counter < some maximum value...
+						if ((valid[m][curr_index - 1] == 1) && (tag[m][curr_index - 1] == curr_tag) &&(count[m][curr_index - 1] < MAX_COUNT_VAL)) {	//If the valid bit is set and the counter < some maximum value...
 							count[m][curr_index - 1] = count[m][curr_index - 1] + 1;						//Increase the counter for that value
 						}
 					}
@@ -147,7 +149,7 @@ int main (int argc, char *argv[]) {
 			}
 			else {
 				miss_flag = 1;											//Set the miss flag if valid not set or tags don't match
-				index[j][curr_index - 1] = curr_addr;
+				//index[j][curr_index - 1] = curr_addr;
 			}
 		}
 		if (miss_flag == 1) {											//If miss flag is set after for loop...
@@ -183,6 +185,7 @@ int main (int argc, char *argv[]) {
 		}
 	}
 	
+	/*
 	if (num_elm == 16) {
 		printf("Set 0 = %d, %d\n", index[0][0], index[0][1]);
 		printf("Set 1 = %d, %d\n", index[0][2], index[0][3]);
@@ -193,7 +196,7 @@ int main (int argc, char *argv[]) {
 		printf("Set 6 = %d, %d\n", index[0][12], index[0][13]);
 		printf("Set 7 = %d, %d\n", index[0][14], index[0][15]);
 	}
-	
+	*/
 	
 	//Print required outputs
 	printf("Cache size: %dk\n", ((num_reads) / 1000));
