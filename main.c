@@ -97,7 +97,7 @@ int main (int argc, char *argv[]) {
 	
 	//printf("shift temp = %d\n", shift_temp);
 	
-	//Generate arrays for tags, valid bit, and count variables
+	//Generate arrays for tags, valid bit, count, and index variables
 	int tag[assoc][(shift_temp + 1)];
 	bool valid[assoc][(shift_temp + 1)];
 	int count[assoc][(shift_temp + 1)];
